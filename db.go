@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -38,7 +39,9 @@ func main() {
 		host, user, password, dbname, port)
 
 	// db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		panic("failed to connect database")
 	} else {
@@ -95,8 +98,11 @@ func main() {
 	// us.Uid = 24
 	// us.Addr = "jhargram"
 	// db.Save(&us)
+	fmt.Println("")
 	db.Model(&tb_1{}).Where("id = ?", 10).Update("name", "Rikisi")
 	db.Model(&tb_1{}).Where("id = ?", 10).Update("age", 200)
+	fmt.Println("Value Updated...")
+	fmt.Println("")
 
 	var dt tb_1
 	er := db.Model(&tb_1{}).Where("id = ?", 9).Delete(dt)
@@ -123,4 +129,69 @@ func main() {
 
 	// drop colum not tested yet
 	//db.Model(&tb_1{}).Migrator().DropColumn(&tb_1{},"uid")
+	// db.Table()
+	ul := []tb_1{}
+	db.Where(&tb_1{ID: 7}).Find(&ul)
+	for _, v := range ul {
+		fmt.Println("")
+		fmt.Printf(" Data is %v  where id is %v\n", v, v.ID)
+		fmt.Println("")
+	}
+
+	var e bool = true
+
+	for e == true {
+		fmt.Println("Enter 1 to serach..")
+		fmt.Println("Enter 2 to exit")
+
+		var ch int
+
+		fmt.Scan(&ch)
+
+		switch ch {
+		case 1:
+			fmt.Println("Enter Name")
+			var s string
+			fmt.Scan(&s)
+			var arr []string
+
+			ul := []tb_1{}
+			//
+			db.Where("name LIKE ?", "%"+s+"%").Order("name").Find(&ul)
+			// db.Where(&tb_1{Name: s}).Find(&ul)
+			for _, v := range ul {
+
+				arr = append(arr, v.Name)
+
+			}
+			var arrs []string
+			for i := 0; i < len(arr); i++ {
+				fmt.Printf("Do you mean '%v' ? (if yes Enter Y / if no enter N \n", arr[i])
+				arrs = append(arrs, arr[i])
+			}
+			var cho string
+			fmt.Scan(&cho)
+			cho1 := strings.ToLower(cho)
+
+			if cho1 == "y" {
+				for _, v := range arrs {
+
+					db.Where(&tb_1{Name: v}).Find(&ul)
+					for _, v := range ul {
+
+						fmt.Printf("DETAIS ARE ID: %v Uid: %v Name: %v Age: %v Addr: %v \n",
+							v.ID, v.Uid, v.Name, v.Age, v.Addr)
+
+					}
+
+				}
+			}
+
+		case 2:
+			e = false
+		default:
+			fmt.Println("Enter Write Choice...")
+
+		}
+	}
 }
